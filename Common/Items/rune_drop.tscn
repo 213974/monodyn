@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://dugnojypiecwp"]
+[gd_scene load_steps=3 format=3 uid="uid://dugnojypiecwp"]
 
+[ext_resource type="Script" uid="uid://bdpla4q4c48rg" path="res://Common/Items/RuneDrop.cs" id="1_c4xs3"]
 [ext_resource type="Texture2D" uid="uid://e87pkrurixab" path="res://icon.svg" id="1_k0by6"]
 
 [node name="RuneDrop" type="Area2D"]
+script = ExtResource("1_c4xs3")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.25, 0.25)

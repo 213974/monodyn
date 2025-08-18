@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://dr8kui1lgahw3"]
+
+[ext_resource type="Script" uid="uid://dien46vef7h2r" path="res://Entities/Enemies/Slime.cs" id="1_ckgw1"]
+[ext_resource type="Script" uid="uid://ci6kc2pxbe2xq" path="res://Entities/Player/Components/HealthComponent.cs" id="2_o0l1c"]
+
+[node name="Slime" type="CharacterBody2D"]
+script = ExtResource("1_ckgw1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_o0l1c")
+MaxHealth = 25.0

@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "**/.godot": true,
+        "**/.import": true,
+        "**/.mono": true,
+        "**/*.translation": true,
+        "**/*.remap": true,
+        "**/*.cs.uid": true,
+        "**/bin": true,
+        "**/obj": true
+    }
+}

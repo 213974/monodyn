@@ -1,3 +1,30 @@
 # Godot 4+ specific ignores
 .godot/
-/android/
+.mono/
+addons/
+
+# C# / dotnet build artifacts
+bin/
+obj/
+*.csproj.user
+
+# Export builds
+builds/
+export_presets.cfg
+
+# VS Code specific ignores
+# Keep project-specific settings, but ignore user-specific ones.
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Asset import metadata, translations, and backups
+*.import
+*.translation
+*.remap
+*~
+
+# OS-specific files
+.DS_Store
+Thumbs.db
