@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://bbn3t00fr3ps5"]
+[gd_scene load_steps=64 format=3 uid="uid://bbn3t00fr3ps5"]
 
 [ext_resource type="Texture2D" uid="uid://decwimigcrjs6" path="res://Assets/Sprites/LordMoto/ATTACK 1.png" id="1_be1ms"]
 [ext_resource type="Script" uid="uid://c87xhvlnfgd5m" path="res://Entities/Player/LordMoto/LordMoto.cs" id="1_i3gei"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cbxorgd74w8tl" path="res://Assets/Sprites/LordMoto/IDLE.png" id="3_i3gei"]
 [ext_resource type="Script" uid="uid://ci6kc2pxbe2xq" path="res://Entities/Player/Components/HealthComponent.cs" id="6_ypymg"]
 [ext_resource type="Script" uid="uid://rkep64gppm4b" path="res://Entities/Player/Components/StatsComponent.cs" id="7_grfjw"]
+[ext_resource type="Script" uid="uid://bq6je71koxq6v" path="res://Common/Components/StatusEffectComponent.cs" id="8_x8t72"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_moor0"]
 atlas = ExtResource("1_be1ms")
@@ -412,12 +413,14 @@ radius = 7.0
 height = 34.0
 
 [node name="LordMoto" type="CharacterBody2D" groups=["player"]]
+collision_layer = 2
 script = ExtResource("1_i3gei")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_aq7qt")
-animation = &"Attack"
+animation = &"Idle"
 autoplay = "Idle"
+frame_progress = 0.679593
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 17)
@@ -434,3 +437,6 @@ script = ExtResource("7_grfjw")
 [node name="AttackCooldownTimer" type="Timer" parent="."]
 wait_time = 0.5
 one_shot = true
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("8_x8t72")

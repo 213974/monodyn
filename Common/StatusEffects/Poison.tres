@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StatusEffectResource" load_steps=2 format=3 uid="uid://4fax6edkvonu"]
+
+[ext_resource type="Script" uid="uid://bdsch11dxgsl3" path="res://Common/StatusEffects/StatusEffectResource.cs" id="1_bbvrb"]
+
+[resource]
+script = ExtResource("1_bbvrb")
+Type = 0
+Duration = 2.0
+TickInterval = 1.0
+DamagePerTick = 2.5
+IsPercentageBased = true
+metadata/_custom_type_script = "uid://bdsch11dxgsl3"

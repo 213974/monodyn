@@ -8,7 +8,6 @@ public partial class HealthComponent : Node
 	public float MaxHealth { get; private set; } = 100.0f;
 	public float CurrentHealth { get; private set; }
 
-	// C# Signals are the way to go for event-driven logic
 	[Signal]
 	public delegate void HealthChangedEventHandler(float newHealth);
 	[Signal]
@@ -21,7 +20,16 @@ public partial class HealthComponent : Node
 
 	public void TakeDamage(float amount)
 	{
+		float previousHealth = CurrentHealth;
 		CurrentHealth = Mathf.Max(CurrentHealth - amount, 0);
+		
+		// Only print if health actually changed
+		if (previousHealth != CurrentHealth)
+		{
+			// This line adds the damage print for ALL damage types
+			GD.Print($"{GetParent().Name} takes {amount.ToString("0.##")} damage.");
+		}
+
 		EmitSignal(SignalName.HealthChanged, CurrentHealth);
 
 		if (CurrentHealth <= 0)

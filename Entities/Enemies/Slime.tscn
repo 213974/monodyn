@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://dr8kui1lgahw3"]
+[gd_scene load_steps=71 format=3 uid="uid://dr8kui1lgahw3"]
 
 [ext_resource type="Script" uid="uid://dien46vef7h2r" path="res://Entities/Enemies/Slime.cs" id="1_ckgw1"]
 [ext_resource type="Texture2D" uid="uid://boxclg4jlph4c" path="res://Assets/Sprites/Slime/slime_idle2.png" id="2_jex1y"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://diormqdrn33v6" path="res://Assets/Sprites/Slime/slime_swallow.png" id="4_ttfwn"]
 [ext_resource type="Script" uid="uid://ccv7alu1ab2wb" path="res://Entities/Enemies/SlimeAI.cs" id="8_2bwg5"]
 [ext_resource type="Script" uid="uid://cffk6dp1gt1an" path="res://Common/Components/LootDropComponent.cs" id="9_s1knl"]
+[ext_resource type="Script" uid="uid://ba8stw7rqbl6d" path="res://Common/Components/StatusApplicatorComponent.cs" id="10_bvyrv"]
+[ext_resource type="Resource" uid="uid://4fax6edkvonu" path="res://Common/StatusEffects/Poison.tres" id="11_dsrpc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j3voo"]
 atlas = ExtResource("2_ttfwn")
@@ -437,7 +439,11 @@ animations = [{
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1iog5"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_dsrpc"]
+
 [node name="Slime" type="CharacterBody2D" groups=["enemies"]]
+collision_layer = 0
+collision_mask = 2
 script = ExtResource("1_ckgw1")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -459,3 +465,11 @@ script = ExtResource("8_2bwg5")
 
 [node name="LootDropComponent" type="Node" parent="."]
 script = ExtResource("9_s1knl")
+
+[node name="StatusApplicator" type="Area2D" parent="."]
+collision_mask = 2
+script = ExtResource("10_bvyrv")
+EffectToApply = ExtResource("11_dsrpc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StatusApplicator"]
+shape = SubResource("CircleShape2D_dsrpc")
