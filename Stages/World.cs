@@ -11,14 +11,8 @@ public partial class World : Node2D
 
 	public override void _Ready()
 	{
-		if (PlayerScene != null)
-		{
-			SpawnNode(PlayerScene, "SpawnPoint");
-		}
-		if (SlimeScene != null)
-		{
-			SpawnNode(SlimeScene, "SlimeSpawnPoint");
-		}
+		if (PlayerScene != null) SpawnNode(PlayerScene, "SpawnPoint");
+		if (SlimeScene != null) SpawnNode(SlimeScene, "SlimeSpawnPoint");
 	}
 
 	private void SpawnNode(PackedScene scene, string spawnPointName)
@@ -27,6 +21,16 @@ public partial class World : Node2D
 		Marker2D spawnPoint = GetNode<Marker2D>(spawnPointName);
 		instance.Position = spawnPoint.Position;
 		AddChild(instance);
-		GD.Print($"{instance.Name} has spawned at {spawnPointName}.");
+
+		// Try to get the health component to print its health
+		var healthComponent = instance.GetNode<HealthComponent>("HealthComponent");
+		if (healthComponent != null)
+		{
+			GD.Print($"{instance.Name} has spawned at {spawnPointName} with {healthComponent.CurrentHealth}/{healthComponent.MaxHealth} HP.");
+		}
+		else
+		{
+			GD.Print($"{instance.Name} has spawned at {spawnPointName}.");
+		}
 	}
 }

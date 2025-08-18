@@ -7,9 +7,8 @@ public partial class Slime : CharacterBody2D
 	private LootDropComponent _lootDropComponent;
 	private AnimatedSprite2D _animatedSprite;
 	private bool _isDead = false;
-	private bool _isSpawning = true; // State flag to control initial animation
+	private bool _isSpawning = true;
 
-	// _Ready becomes async to allow for 'await'
 	public override async void _Ready()
 	{
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
@@ -19,31 +18,19 @@ public partial class Slime : CharacterBody2D
 		_healthComponent.Died += OnDied;
 		_healthComponent.HealthChanged += OnHealthChanged;
 		
-		// Play the spawn animation and wait for it to finish
 		PlayAnimation("Summoned");
 		await ToSignal(_animatedSprite, AnimatedSprite2D.SignalName.AnimationFinished);
-		_isSpawning = false; // Spawning is complete, allow normal logic to run
+		_isSpawning = false;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// Do not run movement/animation logic during spawn or death
 		if (_isDead || _isSpawning) return;
 
-		// This logic now runs correctly after the spawn animation is done
-		if (Velocity.Length() > 0)
-		{
-			PlayAnimation("Move");
-		}
-		else
-		{
-			PlayAnimation("Idle");
-		}
+		if (Velocity.Length() > 0) PlayAnimation("Move");
+		else PlayAnimation("Idle");
 		
-		if (Velocity.X != 0)
-		{
-			_animatedSprite.FlipH = Velocity.X < 0;
-		}
+		if (Velocity.X != 0) _animatedSprite.FlipH = Velocity.X < 0;
 	}
 
 	private void OnHealthChanged(float newHealth)
@@ -62,13 +49,23 @@ public partial class Slime : CharacterBody2D
 		
 		await ToSignal(_animatedSprite, AnimatedSprite2D.SignalName.AnimationFinished);
 
+		GD.Print("Slime has died.");
 		var player = GetTree().GetFirstNodeInGroup("player") as LordMoto;
 		if (player != null)
 		{
 			var playerStats = player.GetNode<StatsComponent>("StatsComponent");
 			if (playerStats != null)
 			{
-				_lootDropComponent.OnDeath(this, playerStats);
+				// Get the result from the loot component
+				var droppedRune = _lootDropComponent.OnDeath(this, playerStats);
+				if (droppedRune != null)
+				{
+					GD.Print($"It dropped a {droppedRune.StatType} rune!");
+				}
+				else
+				{
+					GD.Print("It dropped nothing.");
+				}
 			}
 		}
 		

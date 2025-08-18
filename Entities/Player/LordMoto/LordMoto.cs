@@ -14,7 +14,7 @@ public partial class LordMoto : CharacterBody2D
 	private HealthComponent _healthComponent;
 	private StatsComponent _statsComponent;
 	private Camera2D _camera;
-	private Timer _attackCooldownTimer; // Reference for the cooldown timer
+	private Timer _attackCooldownTimer;
 
 	public override void _Ready()
 	{
@@ -22,18 +22,20 @@ public partial class LordMoto : CharacterBody2D
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_statsComponent = GetNode<StatsComponent>("StatsComponent");
 		_camera = GetNode<Camera2D>("Camera2D");
-		_attackCooldownTimer = GetNode<Timer>("AttackCooldownTimer"); // Get the timer node
+		_attackCooldownTimer = GetNode<Timer>("AttackCooldownTimer");
 
+		// Connect C# signals/events
 		_healthComponent.Died += OnDied;
 		_healthComponent.HealthChanged += OnHealthChanged;
+		_animatedSprite.AnimationFinished += OnAnimationFinished; // Connect the new signal handler
 	}
 
 	public override void _Input(InputEvent @event)
 	{
 		if (@event is InputEventMouseButton mouseEvent && mouseEvent.IsPressed())
 		{
-			if (mouseEvent.ButtonIndex == MouseButton.WheelUp) ZoomCamera(ZoomSpeed);
-			else if (mouseEvent.ButtonIndex == MouseButton.WheelDown) ZoomCamera(-ZoomSpeed);
+			if (mouseEvent.ButtonIndex == MouseButton.WheelUp) ZoomCamera(-ZoomSpeed);
+			else if (mouseEvent.ButtonIndex == MouseButton.WheelDown) ZoomCamera(ZoomSpeed);
 		}
 	}
 
@@ -45,25 +47,20 @@ public partial class LordMoto : CharacterBody2D
 	
 	private void HandleInputAndMovement()
 	{
-		// If an action is playing, prevent other actions and slow down.
 		if (IsAnimationLocked())
 		{
 			Velocity = Velocity.MoveToward(Vector2.Zero, 300 * (float)GetPhysicsProcessDeltaTime());
 			return;
 		}
 
-		// --- Handle Attack ---
-		// Check for attack input AND if the cooldown is finished.
 		if (Input.IsActionJustPressed("attack") && _attackCooldownTimer.IsStopped())
 		{
 			PlayAnimation("Attack");
-			_attackCooldownTimer.Start(); // Start the cooldown!
+			_attackCooldownTimer.Start();
 			HurtFirstEnemyInRange();
-			// After starting an attack, immediately stop processing further input this frame.
 			return;
 		}
 		
-		// --- Handle Movement ---
 		Vector2 direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
 		bool isRunning = Input.IsActionPressed("run");
 		float targetSpeed = isRunning ? RunSpeed : JogSpeed;
@@ -79,15 +76,26 @@ public partial class LordMoto : CharacterBody2D
 		{
 			newAnimation = isRunning ? "Run" : "Jog";
 		}
-		
 		PlayAnimation(newAnimation);
 
 		Vector2 lookDirection = GetGlobalMousePosition() - GlobalPosition;
 		_animatedSprite.FlipH = lookDirection.X < 0;
 	}
+
+	// THIS IS THE NEW METHOD THAT FIXES THE STUCK ANIMATION
+	private void OnAnimationFinished()
+	{
+		// If the attack or hurt animation has just finished, go back to idle.
+		string anim = _animatedSprite.Animation;
+		if (anim == "Attack" || anim == "Hurt")
+		{
+			PlayAnimation("Idle");
+		}
+	}
 	
 	private void OnHealthChanged(float newHealth)
 	{
+		GD.Print($"Lord Moto was hit! Current Health: {newHealth}/{_healthComponent.MaxHealth}");
 		PlayAnimation("Hurt");
 	}
 
@@ -99,7 +107,8 @@ public partial class LordMoto : CharacterBody2D
 
 	private void ZoomCamera(float amount)
 	{
-		float newZoom = Mathf.Clamp(_camera.Zoom.X + amount, MinZoom, MaxZoom);
+		// Note: Positive amount should zoom IN (smaller number), negative should zoom OUT (larger number)
+		float newZoom = Mathf.Clamp(_camera.Zoom.X - amount, MinZoom, MaxZoom);
 		_camera.Zoom = new Vector2(newZoom, newZoom);
 	}
 	
