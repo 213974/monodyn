@@ -4,97 +4,76 @@ using System;
 
 public partial class LordMoto : CharacterBody2D
 {
-	[Export]
-	public float JogSpeed { get; set; } = 150.0f;
-	[Export]
-	public float RunSpeed { get; set; } = 300.0f;
+    // These speeds will eventually be calculated based on stats from the StatsComponent.
+    // For now, they are exported for easy tweaking.
+    [Export]
+    public float JogSpeed { get; set; } = 150.0f;
+    [Export]
+    public float RunSpeed { get; set; } = 300.0f;
 
-	private AnimatedSprite2D _animatedSprite;
-	private Vector2 _direction;
+    // Component References
+    private AnimatedSprite2D _animatedSprite;
+    private HealthComponent _healthComponent;
+    private StatsComponent _statsComponent;
 
-	[Signal]
-	public delegate void HurtEventHandler();
+    public override void _Ready()
+    {
+        // Get references to all the component nodes.
+        // This makes the player a "container" for its functionality.
+        _animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        _healthComponent = GetNode<HealthComponent>("HealthComponent");
+        _statsComponent = GetNode<StatsComponent>("StatsComponent");
 
-	public override void _Ready()
-	{
-		_animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-	}
+        // Connect to the HealthComponent's 'Died' signal using a C# event.
+        _healthComponent.Died += OnDied;
+    }
 
-	public override void _PhysicsProcess(double delta)
-	{
-		HandleInput();
-		UpdateVelocity();
-		MoveAndSlide();
-		UpdateAnimation();
-	}
+    public override void _PhysicsProcess(double delta)
+    {
+        // For now, we keep movement logic here. 
+        // A state machine will manage this later.
+        HandleMovement();
+    }
+    
+    private void HandleMovement()
+    {
+        Vector2 direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        bool isRunning = Input.IsActionPressed("run");
+        float targetSpeed = isRunning ? RunSpeed : JogSpeed;
 
-	private void HandleInput()
-	{
-		_direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        Velocity = direction * targetSpeed;
+        MoveAndSlide();
+        UpdateAnimation(direction, isRunning);
+    }
 
-		if (Input.IsActionJustPressed("attack"))
-		{
-			PlayAnimation("Attack");
-		}
-	}
+    private void UpdateAnimation(Vector2 direction, bool isRunning)
+    {
+        string newAnimation = "Idle";
 
-	private void UpdateVelocity()
-	{
-		// Check if the run action is being held
-		bool isRunning = Input.IsActionPressed("run");
-		
-		// Select speed based on whether the player is running or jogging
-		float targetSpeed = isRunning ? RunSpeed : JogSpeed;
+        if (direction.Length() > 0)
+        {
+            newAnimation = isRunning ? "Run" : "Jog";
+        }
+        
+        if (_animatedSprite.Animation != newAnimation)
+        {
+            _animatedSprite.Play(newAnimation);
+        }
 
-		Velocity = _direction * targetSpeed;
-	}
-
-	private void UpdateAnimation()
-	{
-		// Don't interrupt attack or hurt animations
-		if (_animatedSprite.Animation == "Attack" || _animatedSprite.Animation == "Hurt")
-		{
-			return;
-		}
-
-		bool isMoving = Velocity.Length() > 0;
-		bool isRunning = Input.IsActionPressed("run");
-
-		if (isMoving)
-		{
-			if (isRunning)
-			{
-				PlayAnimation("Run");
-			}
-			else
-			{
-				PlayAnimation("Jog");
-			}
-		}
-		else
-		{
-			PlayAnimation("Idle");
-		}
-
-		// Flip the sprite based on horizontal movement direction
-		if (_direction.X != 0)
-		{
-			_animatedSprite.FlipH = _direction.X < 0;
-		}
-	}
-
-	// Helper function to prevent restarting the same animation every frame
-	private void PlayAnimation(string animName)
-	{
-		if (_animatedSprite.Animation != animName)
-		{
-			_animatedSprite.Play(animName);
-		}
-	}
-
-	public void TakeDamage()
-	{
-		PlayAnimation("Hurt");
-		EmitSignal(SignalName.Hurt);
-	}
+        // Flip sprite based on horizontal direction
+        if (direction.X != 0)
+        {
+            _animatedSprite.FlipH = direction.X < 0;
+        }
+    }
+    
+    /// <summary>
+    /// This method is called when the HealthComponent emits the 'Died' signal.
+    /// </summary>
+    private void OnDied()
+    {
+        GD.Print("Lord Moto has been defeated.");
+        // In the future, this will trigger a death state/animation.
+        QueueFree(); // For now, just remove the character from the game.
+    }
 }
