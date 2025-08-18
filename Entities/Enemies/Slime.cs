@@ -18,18 +18,20 @@ public partial class Slime : CharacterBody2D
 	private void OnDied()
 	{
 		// We need a reference to the player to calculate the dynamic drop.
-		// This is a simple way to find it.
 		var player = GetTree().GetFirstNodeInGroup("player") as LordMoto;
 		if (player != null)
 		{
 			var playerStats = player.GetNode<StatsComponent>("StatsComponent");
-			_lootDropComponent.OnDeath(this, playerStats);
+			if (playerStats != null)
+			{
+				_lootDropComponent.OnDeath(this, playerStats);
+			}
 		}
 		
 		QueueFree();
 	}
 
-	// A temporary way to test killing the enemy
+	// A temporary way to test killing the enemy. You would call this from an attack script.
 	public void Hurt(float damage)
 	{
 		_healthComponent.TakeDamage(damage);
