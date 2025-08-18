@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3 uid="uid://bbn3t00fr3ps5"]
+[gd_scene load_steps=63 format=3 uid="uid://bbn3t00fr3ps5"]
 
 [ext_resource type="Texture2D" uid="uid://decwimigcrjs6" path="res://Assets/Sprites/LordMoto/ATTACK 1.png" id="1_be1ms"]
 [ext_resource type="Script" uid="uid://c87xhvlnfgd5m" path="res://Entities/Player/LordMoto/LordMoto.cs" id="1_i3gei"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://co1l17qhg77x6" path="res://Assets/Sprites/LordMoto/RUN.png" id="2_moor0"]
 [ext_resource type="Texture2D" uid="uid://cbxorgd74w8tl" path="res://Assets/Sprites/LordMoto/IDLE.png" id="3_i3gei"]
 [ext_resource type="Script" uid="uid://ci6kc2pxbe2xq" path="res://Entities/Player/Components/HealthComponent.cs" id="6_ypymg"]
+[ext_resource type="Script" uid="uid://rkep64gppm4b" path="res://Entities/Player/Components/StatsComponent.cs" id="7_grfjw"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_moor0"]
 atlas = ExtResource("1_be1ms")
@@ -243,7 +244,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_x8t72")
 }],
-"loop": true,
+"loop": false,
 "name": &"Attack",
 "speed": 15.0
 }, {
@@ -260,7 +261,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_quxln")
 }],
-"loop": true,
+"loop": false,
 "name": &"Hurt",
 "speed": 11.0
 }, {
@@ -410,14 +411,13 @@ animations = [{
 radius = 7.0
 height = 34.0
 
-[node name="LordMoto" type="CharacterBody2D"]
+[node name="LordMoto" type="CharacterBody2D" groups=["player"]]
 script = ExtResource("1_i3gei")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_aq7qt")
 animation = &"Idle"
 autoplay = "Idle"
-frame_progress = 0.42063
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 17)
@@ -427,3 +427,10 @@ shape = SubResource("CapsuleShape2D_moor0")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("6_ypymg")
+
+[node name="StatsComponent" type="Node" parent="."]
+script = ExtResource("7_grfjw")
+
+[node name="AttackCooldownTimer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true

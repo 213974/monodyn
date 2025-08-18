@@ -5,19 +5,63 @@ public partial class Slime : CharacterBody2D
 {
 	private HealthComponent _healthComponent;
 	private LootDropComponent _lootDropComponent;
+	private AnimatedSprite2D _animatedSprite;
+	private bool _isDead = false;
+	private bool _isSpawning = true; // State flag to control initial animation
 
-	public override void _Ready()
+	// _Ready becomes async to allow for 'await'
+	public override async void _Ready()
 	{
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_lootDropComponent = GetNode<LootDropComponent>("LootDropComponent");
+		_animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 
 		_healthComponent.Died += OnDied;
+		_healthComponent.HealthChanged += OnHealthChanged;
+		
+		// Play the spawn animation and wait for it to finish
+		PlayAnimation("Summoned");
+		await ToSignal(_animatedSprite, AnimatedSprite2D.SignalName.AnimationFinished);
+		_isSpawning = false; // Spawning is complete, allow normal logic to run
 	}
 
-	// This is called by the HealthComponent when health reaches zero.
-	private void OnDied()
+	public override void _PhysicsProcess(double delta)
 	{
-		// We need a reference to the player to calculate the dynamic drop.
+		// Do not run movement/animation logic during spawn or death
+		if (_isDead || _isSpawning) return;
+
+		// This logic now runs correctly after the spawn animation is done
+		if (Velocity.Length() > 0)
+		{
+			PlayAnimation("Move");
+		}
+		else
+		{
+			PlayAnimation("Idle");
+		}
+		
+		if (Velocity.X != 0)
+		{
+			_animatedSprite.FlipH = Velocity.X < 0;
+		}
+	}
+
+	private void OnHealthChanged(float newHealth)
+	{
+		if (_isDead || _isSpawning) return;
+		PlayAnimation("Damaged");
+	}
+
+	private async void OnDied()
+	{
+		_isDead = true;
+		GetNode<SlimeAI>("SlimeAI").SetProcess(false);
+		Velocity = Vector2.Zero;
+		
+		PlayAnimation("Die");
+		
+		await ToSignal(_animatedSprite, AnimatedSprite2D.SignalName.AnimationFinished);
+
 		var player = GetTree().GetFirstNodeInGroup("player") as LordMoto;
 		if (player != null)
 		{
@@ -31,9 +75,16 @@ public partial class Slime : CharacterBody2D
 		QueueFree();
 	}
 
-	// A temporary way to test killing the enemy. You would call this from an attack script.
 	public void Hurt(float damage)
 	{
 		_healthComponent.TakeDamage(damage);
+	}
+	
+	private void PlayAnimation(string animName)
+	{
+		if (_animatedSprite.Animation != animName)
+		{
+			_animatedSprite.Play(animName);
+		}
 	}
 }

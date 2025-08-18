@@ -4,76 +4,129 @@ using System;
 
 public partial class LordMoto : CharacterBody2D
 {
-	// These speeds will eventually be calculated based on stats from the StatsComponent.
-	// For now, they are exported for easy tweaking.
-	[Export]
-	public float JogSpeed { get; set; } = 150.0f;
-	[Export]
-	public float RunSpeed { get; set; } = 300.0f;
+	[Export] public float JogSpeed { get; set; } = 150.0f;
+	[Export] public float RunSpeed { get; set; } = 300.0f;
+	[Export] public float ZoomSpeed { get; set; } = 0.1f;
+	[Export] public float MinZoom { get; set; } = 0.8f;
+	[Export] public float MaxZoom { get; set; } = 2.5f;
 
-	// Component References
 	private AnimatedSprite2D _animatedSprite;
 	private HealthComponent _healthComponent;
 	private StatsComponent _statsComponent;
+	private Camera2D _camera;
+	private Timer _attackCooldownTimer; // Reference for the cooldown timer
 
 	public override void _Ready()
 	{
-		// Get references to all the component nodes.
-		// This makes the player a "container" for its functionality.
 		_animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 		_healthComponent = GetNode<HealthComponent>("HealthComponent");
 		_statsComponent = GetNode<StatsComponent>("StatsComponent");
+		_camera = GetNode<Camera2D>("Camera2D");
+		_attackCooldownTimer = GetNode<Timer>("AttackCooldownTimer"); // Get the timer node
 
-		// Connect to the HealthComponent's 'Died' signal using a C# event.
 		_healthComponent.Died += OnDied;
+		_healthComponent.HealthChanged += OnHealthChanged;
+	}
+
+	public override void _Input(InputEvent @event)
+	{
+		if (@event is InputEventMouseButton mouseEvent && mouseEvent.IsPressed())
+		{
+			if (mouseEvent.ButtonIndex == MouseButton.WheelUp) ZoomCamera(ZoomSpeed);
+			else if (mouseEvent.ButtonIndex == MouseButton.WheelDown) ZoomCamera(-ZoomSpeed);
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// For now, we keep movement logic here. 
-		// A state machine will manage this later.
-		HandleMovement();
+		HandleInputAndMovement();
+		MoveAndSlide();
 	}
 	
-	private void HandleMovement()
+	private void HandleInputAndMovement()
 	{
+		// If an action is playing, prevent other actions and slow down.
+		if (IsAnimationLocked())
+		{
+			Velocity = Velocity.MoveToward(Vector2.Zero, 300 * (float)GetPhysicsProcessDeltaTime());
+			return;
+		}
+
+		// --- Handle Attack ---
+		// Check for attack input AND if the cooldown is finished.
+		if (Input.IsActionJustPressed("attack") && _attackCooldownTimer.IsStopped())
+		{
+			PlayAnimation("Attack");
+			_attackCooldownTimer.Start(); // Start the cooldown!
+			HurtFirstEnemyInRange();
+			// After starting an attack, immediately stop processing further input this frame.
+			return;
+		}
+		
+		// --- Handle Movement ---
 		Vector2 direction = Input.GetVector("move_left", "move_right", "move_up", "move_down");
 		bool isRunning = Input.IsActionPressed("run");
 		float targetSpeed = isRunning ? RunSpeed : JogSpeed;
-
 		Velocity = direction * targetSpeed;
-		MoveAndSlide();
+		
 		UpdateAnimation(direction, isRunning);
 	}
-
+	
 	private void UpdateAnimation(Vector2 direction, bool isRunning)
 	{
 		string newAnimation = "Idle";
-
 		if (direction.Length() > 0)
 		{
 			newAnimation = isRunning ? "Run" : "Jog";
 		}
 		
-		if (_animatedSprite.Animation != newAnimation)
-		{
-			_animatedSprite.Play(newAnimation);
-		}
+		PlayAnimation(newAnimation);
 
-		// Flip sprite based on horizontal direction
-		if (direction.X != 0)
-		{
-			_animatedSprite.FlipH = direction.X < 0;
-		}
+		Vector2 lookDirection = GetGlobalMousePosition() - GlobalPosition;
+		_animatedSprite.FlipH = lookDirection.X < 0;
 	}
 	
-	/// <summary>
-	/// This method is called when the HealthComponent emits the 'Died' signal.
-	/// </summary>
+	private void OnHealthChanged(float newHealth)
+	{
+		PlayAnimation("Hurt");
+	}
+
 	private void OnDied()
 	{
 		GD.Print("Lord Moto has been defeated.");
-		// In the future, this will trigger a death state/animation.
-		QueueFree(); // For now, just remove the character from the game.
+		QueueFree();
+	}
+
+	private void ZoomCamera(float amount)
+	{
+		float newZoom = Mathf.Clamp(_camera.Zoom.X + amount, MinZoom, MaxZoom);
+		_camera.Zoom = new Vector2(newZoom, newZoom);
+	}
+	
+	private void PlayAnimation(string animName)
+	{
+		if (_animatedSprite.Animation != animName)
+		{
+			_animatedSprite.Play(animName);
+		}
+	}
+	
+	private bool IsAnimationLocked()
+	{
+		string anim = _animatedSprite.Animation;
+		return anim == "Attack" || anim == "Hurt";
+	}
+
+	private void HurtFirstEnemyInRange()
+	{
+		var enemies = GetTree().GetNodesInGroup("enemies");
+		foreach (Node enemy in enemies)
+		{
+			if (enemy is Slime slime && this.Position.DistanceTo(slime.Position) < 100)
+			{
+				slime.Hurt(25);
+				break;
+			}
+		}
 	}
 }

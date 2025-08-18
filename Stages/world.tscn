@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://c2q6svu7mdai2"]
+[gd_scene load_steps=7 format=3 uid="uid://c2q6svu7mdai2"]
 
 [ext_resource type="Texture2D" uid="uid://c0s0b1k8vulih" path="res://Assets/Tilesets/Dungeon/CrackedRock.png" id="1_oyn1p"]
 [ext_resource type="Script" uid="uid://bddiqy3fbhop" path="res://Stages/World.cs" id="2_i1pou"]
 [ext_resource type="PackedScene" uid="uid://bbn3t00fr3ps5" path="res://Entities/Player/LordMoto/LordMoto.tscn" id="3_yl0jo"]
+[ext_resource type="PackedScene" uid="uid://dr8kui1lgahw3" path="res://Entities/Enemies/Slime.tscn" id="4_1b63f"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_i1pou"]
 texture = ExtResource("1_oyn1p")
@@ -29,6 +30,7 @@ sources/0 = SubResource("TileSetAtlasSource_i1pou")
 [node name="World" type="Node2D"]
 script = ExtResource("2_i1pou")
 PlayerScene = ExtResource("3_yl0jo")
+SlimeScene = ExtResource("4_1b63f")
 
 [node name="TileMap" type="TileMap" parent="."]
 position = Vector2(96, 96)
@@ -38,3 +40,9 @@ layer_0/tile_data = PackedInt32Array(-65538, 0, 0, -2, 0, 1, 65534, 0, 2, 131070
 
 [node name="SpawnPoint" type="Marker2D" parent="."]
 position = Vector2(160, 160)
+
+[node name="SlimeSpawnPoint" type="Marker2D" parent="."]
+position = Vector2(30, 32)
+
+[node name="Slime" parent="." instance=ExtResource("4_1b63f")]
+visible = false
