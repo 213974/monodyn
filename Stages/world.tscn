@@ -41,8 +41,11 @@ layer_0/tile_data = PackedInt32Array(-65538, 0, 0, -2, 0, 1, 65534, 0, 2, 131070
 [node name="SpawnPoint" type="Marker2D" parent="."]
 position = Vector2(160, 160)
 
-[node name="SlimeSpawnPoint" type="Marker2D" parent="."]
+[node name="SlimeSpawnPoint" type="Marker2D" parent="." groups=["slime_spawn_points"]]
 position = Vector2(352, 97)
 
 [node name="Slime" parent="." instance=ExtResource("4_1b63f")]
 visible = false
+
+[node name="SlimeSpawnPoint2" type="Marker2D" parent="." groups=["slime_spawn_points"]]
+position = Vector2(350, 359)

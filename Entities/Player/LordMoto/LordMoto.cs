@@ -10,11 +10,13 @@ public partial class LordMoto : CharacterBody2D
 	[Export] public float MinZoom { get; set; } = 0.8f;
 	[Export] public float MaxZoom { get; set; } = 2.5f;
 
+	// Component References
 	private AnimatedSprite2D _animatedSprite;
 	private HealthComponent _healthComponent;
 	private StatsComponent _statsComponent;
 	private Camera2D _camera;
 	private Timer _attackCooldownTimer;
+	private SoundManager _soundManager;
 
 	public override void _Ready()
 	{
@@ -24,10 +26,11 @@ public partial class LordMoto : CharacterBody2D
 		_camera = GetNode<Camera2D>("Camera2D");
 		_attackCooldownTimer = GetNode<Timer>("AttackCooldownTimer");
 
-		// Connect C# signals/events
+		_soundManager = GetNode<SoundManager>("/root/SoundManager");
+
 		_healthComponent.Died += OnDied;
 		_healthComponent.HealthChanged += OnHealthChanged;
-		_animatedSprite.AnimationFinished += OnAnimationFinished; // Connect the new signal handler
+		_animatedSprite.AnimationFinished += OnAnimationFinished;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -57,6 +60,9 @@ public partial class LordMoto : CharacterBody2D
 		{
 			PlayAnimation("Attack");
 			_attackCooldownTimer.Start();
+			
+			_soundManager.PlaySfx("res://Assets/Sounds/SwordSlash.wav");
+			
 			HurtFirstEnemyInRange();
 			return;
 		}
@@ -82,10 +88,8 @@ public partial class LordMoto : CharacterBody2D
 		_animatedSprite.FlipH = lookDirection.X < 0;
 	}
 
-	// THIS IS THE NEW METHOD THAT FIXES THE STUCK ANIMATION
 	private void OnAnimationFinished()
 	{
-		// If the attack or hurt animation has just finished, go back to idle.
 		string anim = _animatedSprite.Animation;
 		if (anim == "Attack" || anim == "Hurt")
 		{
@@ -107,7 +111,6 @@ public partial class LordMoto : CharacterBody2D
 
 	private void ZoomCamera(float amount)
 	{
-		// Note: Positive amount should zoom IN (smaller number), negative should zoom OUT (larger number)
 		float newZoom = Mathf.Clamp(_camera.Zoom.X - amount, MinZoom, MaxZoom);
 		_camera.Zoom = new Vector2(newZoom, newZoom);
 	}
